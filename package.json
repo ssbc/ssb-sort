@@ -1,0 +1,21 @@
+{
+  "name": "ssb-sort",
+  "description": "",
+  "version": "0.0.0",
+  "homepage": "https://github.com/dominictarr/ssb-sort",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/dominictarr/ssb-sort.git"
+  },
+  "dependencies": {
+    "ssb-ref": "^2.3.0"
+  },
+  "devDependencies": {
+    "tape": "^4.5.1"
+  },
+  "scripts": {
+    "test": "set -e; for t in test/*.js; do node $t; done"
+  },
+  "author": "Dominic Tarr <dominic.tarr@gmail.com> (http://dominictarr.com)",
+  "license": "MIT"
+}

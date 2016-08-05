@@ -1,4 +1,6 @@
 var crypto = require('crypto')
+var fs = require('fs')
+var path = require('path')
 //just fake messages for testing.
 function hash (msg) {
   return '%'+crypto.createHash('sha256')
@@ -82,4 +84,32 @@ tape('merge', function (t) {
   t.deepEqual(sort.heads(rand), [d.key])
   t.end()
 })
+
+tape('real', function (t) {
+  var thread = fs.readFileSync(path.join(__dirname, 'thread.json'), 'utf8').split('\n\n').filter(Boolean).map(JSON.parse)
+  console.log(thread)
+  var thread2 = sort(thread.slice())
+  var thread3 = thread.slice().sort(function () { return Math.random() - 0.5 })
+  var h1 = sort.heads(thread)
+  var r1 = sort.roots(thread)
+  var h2 = sort.heads(thread2)
+  var r2 = sort.roots(thread2)
+  var h3 = sort.heads(thread3)
+  var r3 = sort.roots(thread3)
+
+  t.deepEqual(h1, h2)
+  t.deepEqual(h2, h3)
+  t.deepEqual(h1, h3)
+
+  t.deepEqual(r1, r2)
+  t.deepEqual(r2, r3)
+  t.deepEqual(r1, r3)
+
+  t.end()
+})
+
+
+
+
+
 

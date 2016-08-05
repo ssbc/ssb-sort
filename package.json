@@ -1,6 +1,6 @@
 {
   "name": "ssb-sort",
-  "description": "",
+  "description": "sort ssb messages by cryptographic order",
   "version": "0.0.0",
   "homepage": "https://github.com/dominictarr/ssb-sort",
   "repository": {

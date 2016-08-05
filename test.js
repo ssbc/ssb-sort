@@ -69,7 +69,7 @@ tape('merge', function (t) {
   t.end()
 
 })
-
+return
 
 tape('merge', function (t) {
   var a = kv({okay: true}) //this is left out of the set.
@@ -87,7 +87,7 @@ tape('merge', function (t) {
 
 tape('real', function (t) {
   var thread = fs.readFileSync(path.join(__dirname, 'thread.json'), 'utf8').split('\n\n').filter(Boolean).map(JSON.parse)
-  console.log(thread)
+
   var thread2 = sort(thread.slice())
   var thread3 = thread.slice().sort(function () { return Math.random() - 0.5 })
   var h1 = sort.heads(thread)
@@ -105,11 +105,19 @@ tape('real', function (t) {
   t.deepEqual(r2, r3)
   t.deepEqual(r1, r3)
 
+  var sorted = sort(thread)
+  t.equal(sorted[0].key, r1[0])
+  var a = []
+  sort.ancestors(thread, h1[0], function (e, k) {
+    a.push(k)
+  })
+  var b = []
+  sort.ancestors(thread, h1[1], function (e, k) {
+    b.push(k)
+  })
+  console.log(a, b)
   t.end()
 })
-
-
-
 
 
 

@@ -166,6 +166,26 @@ function isBranched (thread) {
   return false
 }
 
+function reduce(thread, reducer) {
+
+  function lookup (e) { return get(thread, e) }
+  var state = {}
+  var next = roots(thread).map(lookup)
+
+  while(next.length) {
+    var item = next.shift()
+    var value = reducer(state, item.value)
+    if(value) {
+      state[item.key] = value
+      next = next.concat(satisfyable(thread, item.key, Object.keys(state)).map(lookup))
+    }
+  }
+  return state
+//  return heads(thread).map(function (key) {
+//    return state[key]
+//  }).filter(Boolean)
+}
+
 exports = module.exports = sort
 exports.heads = heads
 exports.roots = roots
@@ -178,12 +198,7 @@ exports.satisfyable = satisfyable
 
 //check if a thread has branches (there are some concurrent updates somewhere)
 exports.isBranched = isBranched
-
-
-
-
-
-
+exports.reduce = reduce
 
 
 

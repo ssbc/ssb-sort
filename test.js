@@ -148,4 +148,31 @@ tape('real', function (t) {
 })
 
 
+tape('reduce', function (t) {
+  var a,b,c,d,e,f
+  var ary = [
+    a = kv({type: 'module', blob: Math.random()}),
+    b = kv({type: 'module', blob: Math.random(), change: 'fix', branch: a.key, root: a.key, }),
+    c = kv({type: 'module', blob: Math.random(), change: 'fix', branch: b.key, root: a.key}),
+    d = kv({type: 'module', blob: Math.random(), change: 'feature', branch: c.key, root: a.key})
+  ]
+
+  var r =
+  sort.reduce(ary, function (state, item) {
+    var def = [0,0,0]
+    if(!item) throw new Error('item undefined')
+    if(!item.branch) return def
+    var branch = state[item.branch] || [0,0,0]
+    var i = {fix:2, feature: 1, break: 0}[item.change]
+    var out = branch.slice()
+    if(item.change) out[i] = branch[i] + 1
+    return out
+  })
+
+  console.log(r)
+
+  t.end()
+})
+
+
 

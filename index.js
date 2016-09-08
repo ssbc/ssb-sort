@@ -137,6 +137,20 @@ function parents (thread, key) {
   return a
 }
 
+//get items which are not in set
+function satisfyable(thread, key, set) {
+  return thread.filter(function (item) {
+    //must have link to key
+    var found = false, missing = false
+    links(item.value, function (link) {
+      if(!get(thread, link)) return //ignore links that go outside the set.
+      if(link === key) found = true
+      else if(!contains(set, link)) missing = true
+    })
+    return found && !missing
+  }).map(function (item) { return item.key })
+}
+
 exports = module.exports = sort
 exports.heads = heads
 exports.roots = roots
@@ -144,6 +158,6 @@ exports.ancestors = ancestors
 exports.children = children
 exports.parents = parents
 
-
+exports.satisfyable = satisfyable
 
 

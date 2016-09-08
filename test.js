@@ -28,7 +28,7 @@ tape('sequental', function (t) {
 
   var a = kv({okay: true})
   var b = kv({okay: 2, root: a.key})
-  var c = kv({okay: 2, root: a.key, branch: b.key})
+  var c = kv({okay: 3, root: a.key, branch: b.key})
   var msgs = [a,b,c]
   var rand = shuffle(msgs)
 
@@ -44,6 +44,9 @@ tape('sequental', function (t) {
   t.deepEqual(sort.children(msgs, b.key), [c.key], 'children2')
   t.deepEqual(sort.parents(msgs, b.key), [a.key], 'parents1')
   t.deepEqual(sort.parents(msgs, c.key).sort(), [b.key, a.key].sort(),  'parents2')
+
+  t.deepEqual(sort.satisfyable(msgs, a.key, []), [b.key])
+  t.deepEqual(sort.satisfyable(msgs, b.key, [a.key]), [c.key])
   t.end()
 })
 
@@ -139,7 +142,6 @@ tape('real', function (t) {
   console.log(a, b)
   t.end()
 })
-
 
 
 

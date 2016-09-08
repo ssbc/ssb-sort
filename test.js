@@ -39,6 +39,11 @@ tape('sequental', function (t) {
 
   t.deepEqual(sort.roots(rand), [a.key])
   t.deepEqual(sort.heads(rand), [c.key])
+
+  t.deepEqual(sort.children(msgs, a.key).sort(), [b.key, c.key].sort(), 'children1')
+  t.deepEqual(sort.children(msgs, b.key), [c.key], 'children2')
+  t.deepEqual(sort.parents(msgs, b.key), [a.key], 'parents1')
+  t.deepEqual(sort.parents(msgs, c.key).sort(), [b.key, a.key].sort(),  'parents2')
   t.end()
 })
 
@@ -52,6 +57,13 @@ tape('concurrent', function (t) {
 
   t.deepEqual(sort.roots(rand), [a.key])
   t.deepEqual(sort.heads(rand).sort(), [b.key, c.key].sort())
+
+  t.deepEqual(sort.children(msgs, a.key).sort(), [b.key, c.key].sort(), 'children1')
+  t.deepEqual(sort.children(msgs, b.key), [], 'children2')
+  t.deepEqual(sort.children(msgs, c.key), [], 'children2')
+  t.deepEqual(sort.parents(msgs, b.key), [a.key], 'parents1')
+  t.deepEqual(sort.parents(msgs, c.key), [a.key], 'parents1')
+
   t.end()
 
 })
@@ -66,10 +78,17 @@ tape('merge', function (t) {
   t.deepEqual(sort(rand), msgs)
   t.deepEqual(sort.roots(rand), [a.key])
   t.deepEqual(sort.heads(rand), [d.key])
+
+  t.deepEqual(sort.children(msgs, a.key).sort(), [b.key, c.key, d.key].sort(), 'children1')
+  t.deepEqual(sort.children(msgs, b.key), [d.key], 'children2')
+  t.deepEqual(sort.children(msgs, c.key), [d.key], 'children2')
+  t.deepEqual(sort.parents(msgs, b.key), [a.key], 'parents1')
+  t.deepEqual(sort.parents(msgs, c.key), [a.key], 'parents1')
+  t.deepEqual(sort.parents(msgs, d.key).sort(), [a.key, b.key, c.key].sort(), 'parents1')
+
   t.end()
 
 })
-return
 
 tape('merge', function (t) {
   var a = kv({okay: true}) //this is left out of the set.
@@ -97,6 +116,8 @@ tape('real', function (t) {
   var h3 = sort.heads(thread3)
   var r3 = sort.roots(thread3)
 
+  console.log(h3)
+
   t.deepEqual(h1, h2)
   t.deepEqual(h2, h3)
   t.deepEqual(h1, h3)
@@ -118,6 +139,7 @@ tape('real', function (t) {
   console.log(a, b)
   t.end()
 })
+
 
 
 

@@ -25,6 +25,15 @@ function messages (thread) {
   return counts
 }
 
+function contains (set, item) {
+  return !!~set.indexOf(item)
+}
+
+function get (thread, key) {
+  for(var i = 0; i < thread.length; i++)
+    if(thread[i].key === key) return thread[i]
+}
+
 function keys (thread) {
   var o = {}
   thread.forEach(function (e) {
@@ -109,8 +118,32 @@ function sort (thread) {
   })
 }
 
+function children (thread, key) {
+  return thread.filter(function (item) {
+    return links(item.value, function (link) {
+      return link === key
+    })
+  }).map(function (e) { return e.key })
+}
+
+function parents (thread, key) {
+  var item = get(thread, key)
+  if(!item) return null
+  var a = []
+  console.log(item, key)
+  links(item.value, function (link) {
+    if(!contains(a, link) && get(thread, link)) a.push(link)
+  })
+  return a
+}
+
 exports = module.exports = sort
 exports.heads = heads
 exports.roots = roots
 exports.ancestors = ancestors
+exports.children = children
+exports.parents = parents
+
+
+
 

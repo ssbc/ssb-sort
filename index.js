@@ -151,6 +151,21 @@ function satisfyable(thread, key, set) {
   }).map(function (item) { return item.key })
 }
 
+function isBranched (thread) {
+  var root = roots(thread), head
+  if(root.length > 1) return true
+  if((head = heads(thread)).length > 1) return true
+  var seen = [], next = root
+  return (function recurse (next, seen) {
+    if(next == head[0]) return false
+    var branch = satisfyable(thread, next, seen)
+    if(branch.length > 1) return true
+    else return recurse(branch[0], seen.concat(next))
+  })(root[0], [])
+
+  return false
+}
+
 exports = module.exports = sort
 exports.heads = heads
 exports.roots = roots
@@ -158,6 +173,17 @@ exports.ancestors = ancestors
 exports.children = children
 exports.parents = parents
 
+//get items which are reachable in a thread, given an item, and a seen set.
 exports.satisfyable = satisfyable
+
+//check if a thread has branches (there are some concurrent updates somewhere)
+exports.isBranched = isBranched
+
+
+
+
+
+
+
 
 

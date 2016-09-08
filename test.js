@@ -47,6 +47,8 @@ tape('sequental', function (t) {
 
   t.deepEqual(sort.satisfyable(msgs, a.key, []), [b.key])
   t.deepEqual(sort.satisfyable(msgs, b.key, [a.key]), [c.key])
+
+  t.equal(sort.isBranched(msgs), false)
   t.end()
 })
 
@@ -67,6 +69,7 @@ tape('concurrent', function (t) {
   t.deepEqual(sort.parents(msgs, b.key), [a.key], 'parents1')
   t.deepEqual(sort.parents(msgs, c.key), [a.key], 'parents1')
 
+  t.equal(sort.isBranched(msgs), true)
   t.end()
 
 })
@@ -89,6 +92,7 @@ tape('merge', function (t) {
   t.deepEqual(sort.parents(msgs, c.key), [a.key], 'parents1')
   t.deepEqual(sort.parents(msgs, d.key).sort(), [a.key, b.key, c.key].sort(), 'parents1')
 
+  t.equal(sort.isBranched(msgs), true)
   t.end()
 
 })

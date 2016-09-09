@@ -1,5 +1,7 @@
 var isMsg = require('ssb-ref').isMsg
 
+function isFunction (f) { return 'function' === typeof f }
+
 function links (obj, each) {
   if(isMsg(obj)) return each(obj)
   if(!obj || 'object' !== typeof obj) return
@@ -168,39 +170,40 @@ function isBranched (thread) {
   return false
 }
 
-//the reduce function is responsible for handling merges, however they are represented.
-//function reduce(thread, reducer) {
-//
-//  function lookup (e) { return get(thread, e) }
-//  var state = {}
-//  var next = roots(thread).map(lookup)
-//
-//  while(next.length) {
-//    var item = next.shift()
-//    var value = reducer(state, item.value)
-//    if(value) {
-//      state[item.key] = value
-//      next = next.concat(satisfyable(thread, item.key, Object.keys(state)).map(lookup))
-//    }
-//  }
-//  return state
-//}
-//
-function reduce (thread, reducer, start) {
-  var kv = {}
+function reduce (thread, reducer, filter, start) {
+  if(!isFunction(filter))
+    start = filter, filter = null
+  var kv = {}, heads = {}
   thread.forEach(function (item) { kv[item.key] = item })
   var state = {}
-  function recurse(item) {
+  function recurse(item, f) {
     if(state[item.key]) return
     //recurse first gives topological order
     links(item.value, function (link) {
       if(kv[link] && !state[link]) recurse(kv[link])
     })
-    state[item.key] = reducer(state, item.value)
+
+    if(!f || !filter || filter(item.value, state)) {
+      state[item.key] = reducer(state, item.value)
+    }
+    else return
+
+    heads[item.key] = true
+    links(item.value, function (link) {
+      if(kv[link]) heads[link] = false
+    })
     //iterate over links again, to check for heads.
   }
   if(start) {
-    recurse(kv[start])
+    recurse(kv[start], false) //first calculate ancestors without filter
+    if(filter) {
+      thread.forEach(function (e) { return recurse(e, true) })
+      var h = {}
+      for(var key in heads) {
+        if(heads[key]) h[key] = state[key]
+      }
+      return h
+    }
     return state[start]
   } else {
     thread.forEach(recurse)
@@ -221,5 +224,5 @@ exports.satisfyable = satisfyable
 //check if a thread has branches (there are some concurrent updates somewhere)
 exports.isBranched = isBranched
 exports.reduce = reduce
-exports.reduceItem = reduce
+
 

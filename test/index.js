@@ -186,5 +186,34 @@ tape('reduce', function (t) {
 
   })
 
+  t.test('filtered reduce', function (t) {
+
+    function isFix (e) {
+      return e.change === FIX
+    }
+    function isFeature (e) {
+      console.log('isFeature', e)
+      return (e.change === FEATURE) || isFix(e)
+    }
+
+    var ex = {}, feat = {}
+    ex[c.key] = expected[c.key]
+    feat[d.key] = expected[d.key]
+
+    t.deepEqual(sort.reduce(thread, reducer, isFix, a.key), ex)
+    t.deepEqual(sort.reduce(thread, reducer, isFeature, a.key), feat)
+    t.end()
+  })
+
 })
+
+//what about managing editors ?
+//use cases
+
+//someone proposes an edit (show that there is a branch, may be incorporated into history by a merge)
+
+//someone is added as an editor, now their edits will resolve.
+
+//add someone as editor (within range?)
+
 

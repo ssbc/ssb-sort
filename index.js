@@ -140,6 +140,8 @@ function parents (thread, key) {
 //get items which are not in set
 function satisfyable(thread, key, set) {
   return thread.filter(function (item) {
+    //if already in the set, skip
+    if(contains(set, item.key)) return
     //must have link to key
     var found = false, missing = false
     links(item.value, function (link) {
@@ -166,24 +168,44 @@ function isBranched (thread) {
   return false
 }
 
-function reduce(thread, reducer) {
-
-  function lookup (e) { return get(thread, e) }
+//the reduce function is responsible for handling merges, however they are represented.
+//function reduce(thread, reducer) {
+//
+//  function lookup (e) { return get(thread, e) }
+//  var state = {}
+//  var next = roots(thread).map(lookup)
+//
+//  while(next.length) {
+//    var item = next.shift()
+//    var value = reducer(state, item.value)
+//    if(value) {
+//      state[item.key] = value
+//      next = next.concat(satisfyable(thread, item.key, Object.keys(state)).map(lookup))
+//    }
+//  }
+//  return state
+//}
+//
+function reduce (thread, reducer, start) {
+  var kv = {}
+  thread.forEach(function (item) { kv[item.key] = item })
   var state = {}
-  var next = roots(thread).map(lookup)
-
-  while(next.length) {
-    var item = next.shift()
-    var value = reducer(state, item.value)
-    if(value) {
-      state[item.key] = value
-      next = next.concat(satisfyable(thread, item.key, Object.keys(state)).map(lookup))
-    }
+  function recurse(item) {
+    if(state[item.key]) return
+    //recurse first gives topological order
+    links(item.value, function (link) {
+      if(kv[link] && !state[link]) recurse(kv[link])
+    })
+    state[item.key] = reducer(state, item.value)
+    //iterate over links again, to check for heads.
   }
-  return state
-//  return heads(thread).map(function (key) {
-//    return state[key]
-//  }).filter(Boolean)
+  if(start) {
+    recurse(kv[start])
+    return state[start]
+  } else {
+    thread.forEach(recurse)
+    return state
+  }
 }
 
 exports = module.exports = sort
@@ -199,6 +221,5 @@ exports.satisfyable = satisfyable
 //check if a thread has branches (there are some concurrent updates somewhere)
 exports.isBranched = isBranched
 exports.reduce = reduce
-
-
+exports.reduceItem = reduce
 

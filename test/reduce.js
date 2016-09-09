@@ -1,13 +1,14 @@
 var crypto = require('crypto')
+var Merge = require('deep-merge')
+var sort = require('../')
+var tape = require('tape')
+
 //just fake messages for testing.
 function hash (msg) {
   return '%'+crypto.createHash('sha256')
     .update(JSON.stringify(msg, null, 2))
     .digest('base64')+'.sha256'
 }
-
-var sort = require('../')
-var tape = require('tape')
 
 function kv (value) {
   return {key: hash(value), value: value, timestamp: Date.now()}
@@ -16,7 +17,65 @@ function kv (value) {
 function isString (s) { return 'string' === typeof s }
 var isArray = Array.isArray
 
-var Merge = require('deep-merge')
+tape('reduce', function (t) {
+  var a,b,c,d
+  var FIX = 2, FEATURE = 1, BREAK = 0
+  var thread = [
+    a = kv({type: 'module', blob: Math.random()}),
+    b = kv({type: 'module', blob: Math.random(), change: FIX, branch: a.key, root: a.key, }),
+    c = kv({type: 'module', blob: Math.random(), change: FIX, branch: b.key, root: a.key}),
+    d = kv({type: 'module', blob: Math.random(), change: FEATURE, branch: c.key, root: a.key})
+  ]
+
+  function reducer (state, item) {
+    var def = [0,0,0]
+    if(!item.branch) return def //root object.
+    console.log(state, item)
+    return state[item.branch].map(function (v, i) {
+      return i === item.change ? v + 1 : v
+    })
+  }
+
+  var expected = {}
+  expected[a.key] = [0, 0, 0]
+  expected[b.key] = [0, 0, 1]
+  expected[c.key] = [0, 0, 2]
+  expected[d.key] = [0, 1, 2]
+
+  t.test('reduce everything', function (t) {
+    var state = sort.reduce(thread, reducer)
+    var x = {}; x[d.key] = expected[d.key]
+    t.deepEqual(state, x)
+    t.end()
+  })
+
+  t.test('reduce to state', function (t) {
+    var x = {}
+    x[c.key] = expected[c.key]
+    t.deepEqual(sort.reduce(thread, reducer, false, c.key), x)
+    t.end()
+  })
+
+  t.test('filtered reduce', function (t) {
+
+    function isFix (e) {
+      return e.change === FIX
+    }
+    function isFeature (e) {
+      return (e.change === FEATURE) || isFix(e)
+    }
+
+    var ex = {}, feat = {}
+    ex[c.key] = expected[c.key]
+    feat[d.key] = expected[d.key]
+
+    t.deepEqual(sort.reduce(thread, reducer, isFix, a.key), ex)
+    t.deepEqual(sort.reduce(thread, reducer, isFeature, a.key), feat)
+    t.end()
+  })
+
+})
+
 
 var mergeTogether = Merge(function (a, b) {
   if(Array.isArray(a)) return a.concat([b])
@@ -38,15 +97,7 @@ function copy (a) {
 //1) doesn't overwrite anything, keeps all values in arrays, if possible.
 //2) if there is a difference, replaces with second value.
 
-function merge(a, b, path) {
-  if(b === undefined) return a
-  if(isArray(a)) return a.concat(b)
-
-  if(isArray(b))
-    if(a !== undefined) return a
-}
-
-function merge (state, value, special) {
+function merge (state, value) {
   var o = {}
   //if there is only one branch, merge is easy.
   var special = ['branch', 'root', 'author']
@@ -66,9 +117,8 @@ function merge (state, value, special) {
 
 function filter (value, state) {
   var author = value.author
-  console.log('FILTER', value)
   if(!value.branch) return true //root message
-  return (isArray(value.branch) ? value.branch : [value.branch]).find(function (key) {
+  return [].concat(value.branch).find(function (key) {
     return state[key].editors[author]
   })
 }
@@ -159,4 +209,8 @@ tape('disallowed editor', function (t) {
 
   t.end()
 })
+
+
+
+
 

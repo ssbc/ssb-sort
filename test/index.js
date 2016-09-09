@@ -7,7 +7,7 @@ function hash (msg) {
     .update(JSON.stringify(msg, null, 2))
     .digest('base64')+'.sha256'
 }
-var sort = require('./')
+var sort = require('../')
 var tape = require('tape')
 
 function kv (value) {
@@ -146,74 +146,5 @@ tape('real', function (t) {
   console.log(a, b)
   t.end()
 })
-
-
-tape('reduce', function (t) {
-  var a,b,c,d
-  var FIX = 2, FEATURE = 1, BREAK = 0
-  var thread = [
-    a = kv({type: 'module', blob: Math.random()}),
-    b = kv({type: 'module', blob: Math.random(), change: FIX, branch: a.key, root: a.key, }),
-    c = kv({type: 'module', blob: Math.random(), change: FIX, branch: b.key, root: a.key}),
-    d = kv({type: 'module', blob: Math.random(), change: FEATURE, branch: c.key, root: a.key})
-  ]
-
-  function reducer (state, item) {
-    var def = [0,0,0]
-    if(!item.branch) return def //root object.
-    return state[item.branch].map(function (v, i) {
-      return i === item.change ? v + 1 : v
-    })
-  }
-
-  var expected = {}
-  expected[a.key] = [0,0,0]
-  expected[b.key] = [0,0,1]
-  expected[c.key] = [0,0,2]
-  expected[d.key] = [0,1,2]
-
-  t.test('reduce everything', function (t) {
-
-    var state = sort.reduce(thread, reducer)
-
-    t.deepEqual(state, expected)
-    t.end()
-  })
-
-  t.test('reduce to state', function (t) {
-    t.deepEqual(sort.reduceItem(thread, reducer, c.key), expected[c.key])
-    t.end()
-
-  })
-
-  t.test('filtered reduce', function (t) {
-
-    function isFix (e) {
-      return e.change === FIX
-    }
-    function isFeature (e) {
-      console.log('isFeature', e)
-      return (e.change === FEATURE) || isFix(e)
-    }
-
-    var ex = {}, feat = {}
-    ex[c.key] = expected[c.key]
-    feat[d.key] = expected[d.key]
-
-    t.deepEqual(sort.reduce(thread, reducer, isFix, a.key), ex)
-    t.deepEqual(sort.reduce(thread, reducer, isFeature, a.key), feat)
-    t.end()
-  })
-
-})
-
-//what about managing editors ?
-//use cases
-
-//someone proposes an edit (show that there is a branch, may be incorporated into history by a merge)
-
-//someone is added as an editor, now their edits will resolve.
-
-//add someone as editor (within range?)
 
 

@@ -171,8 +171,11 @@ function isBranched (thread) {
 }
 
 function reduce (thread, reducer, filter, start) {
+  if(filter === false)
+    filter = function () { return false }
   if(!isFunction(filter))
     start = filter, filter = null
+
   var kv = {}, heads = {}
   thread.forEach(function (item) { kv[item.key] = item })
   var state = {}
@@ -189,26 +192,27 @@ function reduce (thread, reducer, filter, start) {
     else return
 
     heads[item.key] = true
+    //iterate over links again, to check for heads.
     links(item.value, function (link) {
       if(kv[link]) heads[link] = false
     })
-    //iterate over links again, to check for heads.
   }
-  if(start) {
-    recurse(kv[start], false) //first calculate ancestors without filter
-    if(filter) {
-      thread.forEach(function (e) { return recurse(e, true) })
-      var h = {}
-      for(var key in heads) {
-        if(heads[key]) h[key] = state[key]
-      }
-      return h
-    }
-    return state[start]
-  } else {
-    thread.forEach(recurse)
-    return state
-  }
+
+  //first calculate ancestors without filter
+  [].concat(start||[]).forEach(function (key) {
+    recurse(kv[key], false)
+  })
+
+  //then expand set, via filter
+  thread.forEach(function (e) { return recurse(e, true) })
+
+  //then, contract set...
+
+  var h = {}
+  for(var key in heads)
+    if(heads[key]) h[key] = state[key]
+
+  return h
 }
 
 exports = module.exports = sort
@@ -224,5 +228,7 @@ exports.satisfyable = satisfyable
 //check if a thread has branches (there are some concurrent updates somewhere)
 exports.isBranched = isBranched
 exports.reduce = reduce
+
+
 
 

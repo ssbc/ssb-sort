@@ -210,7 +210,3 @@ tape('disallowed editor', function (t) {
   t.end()
 })
 
-
-
-
-

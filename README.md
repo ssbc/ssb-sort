@@ -30,6 +30,8 @@ sort a set (array of unique messages) by causal order,
 sorts first by causal order, but if two messages are concurrent,
 breaks the tie by their received, then self-stated timestamps, then order by keys.
 
+mutates the original set
+
 ### `sort.heads (set) => Array`
 
 returns the most recent keys in the set (furtherest down the

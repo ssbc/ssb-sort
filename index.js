@@ -22,6 +22,7 @@ function messages (thread) {
 }
 
 function heads (thread) {
+  sort(thread)
   var counts = messages(thread)
 
   thread.forEach(function (msg) {
@@ -36,6 +37,7 @@ function heads (thread) {
 }
 
 function roots (thread) {
+  sort(thread)
   var counts = messages(thread)
 
   thread.forEach(function (msg) {
@@ -72,11 +74,12 @@ function order (thread) {
   return counts
 }
 
-function sort (thread) {
-  var counts = order(thread)
+function sort (thread, _order) {
+  if(!_order) _order = order(thread)
+
   return thread.sort(function (a, b) {
     return (
-      counts[a.key] - counts[b.key]
+      _order[a.key] - _order[b.key]
       //received timestamp, may not be present
       || a.timestamp - b.timestamp
       //declared timestamp, may by incorrect or a lie
@@ -88,7 +91,9 @@ function sort (thread) {
 }
 
 function missingContext (thread) {
-  var counts = order(thread)
+  var _order = order(thread)
+  sort(thread, _order) // save a double order
+
   var missingContext = {}
 
   var depth = 1
@@ -96,7 +101,7 @@ function missingContext (thread) {
   var done = false
   while (!done) {
     subset = thread.filter(function (msg) {
-      return counts[msg.key] <= depth
+      return _order[msg.key] <= depth
     })
     var subsetHeads = heads(subset)
 

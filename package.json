@@ -1,11 +1,11 @@
 {
   "name": "ssb-sort",
-  "description": "",
-  "version": "0.0.0",
-  "homepage": "https://github.com/dominictarr/ssb-sort",
+  "description": "sort ssb messages by cryptographic order",
+  "version": "1.0.0",
+  "homepage": "https://github.com/ssbc/ssb-sort",
   "repository": {
     "type": "git",
-    "url": "git://github.com/dominictarr/ssb-sort.git"
+    "url": "git://github.com/ssbc/ssb-sort.git"
   },
   "dependencies": {
     "ssb-ref": "^2.3.0"

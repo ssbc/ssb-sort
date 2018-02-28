@@ -26,9 +26,9 @@ all functions will throw if there is a duplicate message in the input.
 
 ### sort (set)
 
-sort a set by causal order, sorts first by causal order,
-but if two messages are concurrent, breaks the tie by their
-received, then self-stated timestamps, then order by keys.
+sort a set (array of unique messages) by causal order,
+sorts first by causal order, but if two messages are concurrent,
+breaks the tie by their received, then self-stated timestamps, then order by keys.
 
 ### sort.heads (set)
 
@@ -41,6 +41,28 @@ returns the earliest keys in the set, since this operates
 on an arbitary set of messages, there may be more than one root.
 but usually you'll select a set by getting messages that point
 to a particular root node, in which case this will return one key.
+
+### sort.order (set)
+
+returns an object where the keys are the message keys,
+and values are the 'depth' of that message in the causal tree.
+
+
+e.g. 1 implies a root, 4 implies 3 levels of messages above that message.
+
+```
+1:       A
+        /|\
+       / | \
+      /  |  \
+2:   B1  B2  B3
+      \ /   /
+3:     C   /
+        \ /
+4:       D
+```
+
+this method is used internally by other methods and made available for convenience
 
 ## License
 

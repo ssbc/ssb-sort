@@ -1,14 +1,10 @@
-var isMsg = require('ssb-ref').isMsg
+var isMsgRef = require('ssb-ref').isMsg
 
 function links (obj, each) {
-  if(isMsg(obj)) return each(obj)
+  if(isMsgRef(obj)) return each(obj)
   if(!obj || 'object' !== typeof obj) return
   for(var k in obj)
     links(obj[k], each)
-}
-
-function firstKey (obj) {
-  for(var k in obj) return k
 }
 
 //used to initialize sort
@@ -26,12 +22,11 @@ function messages (thread) {
 }
 
 function heads (thread) {
-
   var counts = messages(thread)
+
   thread.forEach(function (msg) {
     if(counts[msg.key] == 0) return
     links(msg.value, function (link) {
-        change = true
       counts[link] = 0
     })
   })
@@ -41,7 +36,6 @@ function heads (thread) {
 }
 
 function roots (thread) {
-
   var counts = messages(thread)
 
   thread.forEach(function (msg) {
@@ -58,14 +52,16 @@ function roots (thread) {
 
 function order (thread) {
   var counts = messages(thread)
-  //until(function () {
+
   var ordered = true
   while(ordered) {
     ordered = false
     thread.forEach(function (msg) {
-      var max = counts[msg.key]
-      links(msg.value, function (e) {
-        if(counts[e] && counts[e] + 1 > max) max = counts[e] + 1
+      var max = counts[msg.key] // bigger max == causally later
+
+      // set our max to 1 larger than any linked message with a count >= to ours
+      links(msg.value, function (link) {
+        if(counts[link] && counts[link] + 1 > max) max = counts[link] + 1
       })
       if(max > counts[msg.key]) {
         ordered = true
@@ -95,11 +91,4 @@ exports = module.exports = sort
 exports.heads = heads
 exports.order = order
 exports.roots = roots
-
-
-
-
-
-
-
 

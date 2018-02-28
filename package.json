@@ -11,10 +11,11 @@
     "ssb-ref": "^2.3.0"
   },
   "devDependencies": {
+    "tap-spec": "^4.1.1",
     "tape": "^4.5.1"
   },
   "scripts": {
-    "test": "set -e; for t in test/*.js; do node $t; done"
+    "test": "tape **/*.test.js | tap-spec"
   },
   "author": "Dominic Tarr <dominic.tarr@gmail.com> (http://dominictarr.com)",
   "license": "MIT"

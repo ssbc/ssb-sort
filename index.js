@@ -16,7 +16,7 @@ function heads (thread) {
 }
 
 function roots (thread) {
-  // sort(thread)
+  sort(thread)
   var counts = messages(thread)
 
   thread.forEach(function (msg) {

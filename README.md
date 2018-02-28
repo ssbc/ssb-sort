@@ -24,23 +24,27 @@ var sort = require('ssb-sort')
 
 all functions will throw if there is a duplicate message in the input.
 
-### sort (set)
+### `sort (set) => Array`
 
 sort a set (array of unique messages) by causal order,
 sorts first by causal order, but if two messages are concurrent,
 breaks the tie by their received, then self-stated timestamps, then order by keys.
 
-### sort.heads (set)
+### `sort.heads (set) => Array`
 
 returns the most recent keys in the set (furtherest down the
 causation chain)
 
-### sort.roots (set)
+### `sort.roots (set) => Array`
 
 returns the earliest keys in the set, since this operates
 on an arbitary set of messages, there may be more than one root.
 but usually you'll select a set by getting messages that point
 to a particular root node, in which case this will return one key.
+
+### `sort.missingContext (set) => Object`
+
+returns an object where each key is the key of a message missing context, and the value stored in it is the array of messages constituting that missing context.
 
 ### sort.order (set)
 

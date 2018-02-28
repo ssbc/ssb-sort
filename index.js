@@ -87,8 +87,41 @@ function sort (thread) {
   })
 }
 
+function missingContext (thread) {
+  var counts = order(thread)
+  var missingContext = {}
+
+  var depth = 1
+  var subset = []
+  var done = false
+  while (!done) {
+    subset = thread.filter(function (msg) {
+      return counts[msg.key] <= depth
+    })
+    var subsetHeads = heads(subset)
+
+    // if there is more than one head at this level, then there's missingContext
+    if (subsetHeads.length > 1) {
+      subsetHeads.forEach(function (head) {
+        var thisMissingContext = subsetHeads
+          .filter(function (h) { return h !== head })
+          .map(function (h) {
+            return thread.find(function (msg) { return msg.key === h })
+          })
+
+        missingContext[head] = (missingContext[head] || []).concat(thisMissingContext)
+      })
+    }
+
+    if (subset.length === thread.length) done = true
+    depth++
+  }
+
+  return missingContext
+}
+
 exports = module.exports = sort
 exports.heads = heads
 exports.order = order
 exports.roots = roots
-
+exports.missingContext = missingContext

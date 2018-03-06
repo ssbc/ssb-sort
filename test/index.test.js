@@ -128,6 +128,54 @@ tape('multiple merge', function (t) {
   t.end()
 })
 
+tape('concurrent complex', function (t) {
+  // This case :
+  //
+  // 1:       A
+  //         /|\
+  //        / | \
+  //       /  |  \
+  // 2:   B1  B2  B3
+  //       \ /
+  // 3:     C
+  //
+  var a = kv({okay: true, name: 'a'})
+  var b1 = kv({okay: 2, name: 'b1', root: a.key})
+  var b2 = kv({okay: 2, name: 'b2', root: a.key})
+  var b3 = kv({okay: 2, name: 'b3', root: a.key})
+  var c = kv({okay: 3, name: 'c', branch: [b1.key, b2.key], root: a.key})
+
+  var msgs = [a, b1, b2, b3, c]
+  var rand = shuffle(msgs)
+
+  t.deepEqual(sort.roots(rand), [a.key], 'correct roots')
+  t.deepEqual(sort.heads(rand), [c.key, b3.key], 'correct heads')
+  t.deepEqual(
+    sortVals(sort.missingContext(rand)),
+    {
+      [b1.key]: [b2, b3],
+      [b2.key]: [b1, b3],
+      [b3.key]: [b1, b2, c],
+      [c.key]: [b3]
+    },
+    'correct missingContext'
+  )
+  t.deepEqual(sort(rand), msgs, 'correct sort')
+
+  function sortVals (obj) {
+    Object.keys(obj).forEach(k => {
+      obj[k] = obj[k].sort((a, b) => a.value.timestamp - b.value.timestamp)
+    })
+    return obj
+  }
+
+  // function vals(obj) {
+  //   Object.keys(obj).forEach(k => obj[k] = obj[k].map(m=> m.value.content.name))
+  //   return obj
+  // }
+
+  t.end()
+})
 tape('real', function (t) {
   var thread = fs.readFileSync(path.join(__dirname, 'thread.json'), 'utf8').split('\n\n').filter(Boolean).map(JSON.parse)
 

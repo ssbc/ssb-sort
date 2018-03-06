@@ -101,6 +101,8 @@ tape('multiple merge', function (t) {
 
   t.deepEqual(sort.roots(rand), [a.key], 'correct roots')
   t.deepEqual(sort.heads(rand), [d.key], 'correct heads')
+
+
   t.deepEqual(
     sortVals(sort.missingContext(rand)),
     {
@@ -176,6 +178,61 @@ tape('concurrent complex', function (t) {
 
   t.end()
 })
+
+tape('concurrent complex, 2', function (t) {
+  // This case :
+  //
+  // 1:       A
+  //         /|\
+  //        / | \
+  //       /  |  \
+  // 2:   B1  B2  B3
+  //       \ /     \
+  // 3:     C1      C2
+  //
+  var a = kv({okay: true, name: 'a'})
+  var b1 = kv({okay: 2, name: 'b1', root: a.key})
+  var b2 = kv({okay: 2, name: 'b2', root: a.key})
+  var b3 = kv({okay: 2, name: 'b3', root: a.key})
+  var c1 = kv({okay: 3, name: 'c1', branch: [b1.key, b2.key], root: a.key})
+  var c2 = kv({okay: 3, name: 'c2', branch: b3.key, root: a.key})
+
+  var msgs = [a, b1, b2, b3, c1, c2]
+  var rand = shuffle(msgs)
+
+  console.log(JSON.stringify(sort.missingContext(rand)[c1.key], null, 2))
+
+  t.deepEqual(sort.roots(rand), [a.key], 'correct roots')
+  t.deepEqual(sort.heads(rand), [c1.key, c2.key], 'correct heads')
+  t.deepEqual(
+    sortVals(sort.missingContext(rand)),
+    {
+      [b1.key]: [b2, b3],
+      [b2.key]: [b1, b3],
+      [b3.key]: [b1, b2, c1],
+      [c1.key]: [b3, c2],
+      [c2.key]: [b1, b2, c1]
+    },
+    'correct missingContext'
+  )
+  t.deepEqual(sort(rand), msgs, 'correct sort')
+
+  function sortVals (obj) {
+    Object.keys(obj).forEach(k => {
+      obj[k] = obj[k].sort((a, b) => a.value.timestamp - b.value.timestamp)
+    })
+    return obj
+  }
+
+  // function vals(obj) {
+  //   Object.keys(obj).forEach(k => obj[k] = obj[k].map(m=> m.value.content.name))
+  //   return obj
+  // }
+
+  t.end()
+})
+
+
 tape('real', function (t) {
   var thread = fs.readFileSync(path.join(__dirname, 'thread.json'), 'utf8').split('\n\n').filter(Boolean).map(JSON.parse)
 
@@ -209,4 +266,8 @@ tape('real', function (t) {
   // console.log(a, b)
   t.end()
 })
+
+
+
+
 

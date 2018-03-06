@@ -200,6 +200,7 @@ tape('concurrent complex, 2', function (t) {
   var msgs = [a, b1, b2, b3, c1, c2]
   var rand = shuffle(msgs)
 
+  //outputs c2 only! but should output B3 too!
   console.log(JSON.stringify(sort.missingContext(rand)[c1.key], null, 2))
 
   t.deepEqual(sort.roots(rand), [a.key], 'correct roots')

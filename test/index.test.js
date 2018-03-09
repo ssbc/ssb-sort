@@ -122,11 +122,6 @@ tape('multiple merge', function (t) {
     return obj
   }
 
-  // function vals(obj) {
-  //   Object.keys(obj).forEach(k => obj[k] = obj[k].map(m=> m.value.content.name))
-  //   return obj
-  // }
-
   t.end()
 })
 
@@ -151,7 +146,7 @@ tape('concurrent complex', function (t) {
   var rand = shuffle(msgs)
 
   t.deepEqual(sort.roots(rand), [a.key], 'correct roots')
-  t.deepEqual(sort.heads(rand), [c.key, b3.key], 'correct heads')
+  t.deepEqual(sort.heads(rand).sort(), [c.key, b3.key].sort(), 'correct heads')
   t.deepEqual(
     sortVals(sort.missingContext(rand)),
     {
@@ -170,11 +165,6 @@ tape('concurrent complex', function (t) {
     })
     return obj
   }
-
-  // function vals(obj) {
-  //   Object.keys(obj).forEach(k => obj[k] = obj[k].map(m=> m.value.content.name))
-  //   return obj
-  // }
 
   t.end()
 })
@@ -200,20 +190,24 @@ tape('concurrent complex, 2', function (t) {
   var msgs = [a, b1, b2, b3, c1, c2]
   var rand = shuffle(msgs)
 
-  //outputs c2 only! but should output B3 too!
-  console.log(JSON.stringify(sort.missingContext(rand)[c1.key], null, 2))
+  // ## handy output for debugging
+  // const mc = sort.missingContext(rand)
+  // const getName = m => m.value.content.name
+  // msgs
+  //   .filter(m => mc[m.key])
+  //   .forEach(m => console.log(getName(m), ' ', mc[m.key].map(getName)) )
 
   t.deepEqual(sort.roots(rand), [a.key], 'correct roots')
-  t.deepEqual(sort.heads(rand), [c1.key, c2.key], 'correct heads')
+  t.deepEqual(sort.heads(rand).sort(), [c1.key, c2.key].sort(), 'correct heads')
   t.deepEqual(
     sortVals(sort.missingContext(rand)),
-    {
-      [b1.key]: [b2, b3],
-      [b2.key]: [b1, b3],
+    sortVals({
+      [b1.key]: [b2, b3, c2],
+      [b2.key]: [b1, b3, c2],
       [b3.key]: [b1, b2, c1],
       [c1.key]: [b3, c2],
       [c2.key]: [b1, b2, c1]
-    },
+    }),
     'correct missingContext'
   )
   t.deepEqual(sort(rand), msgs, 'correct sort')
@@ -232,7 +226,6 @@ tape('concurrent complex, 2', function (t) {
 
   t.end()
 })
-
 
 tape('real', function (t) {
   var thread = fs.readFileSync(path.join(__dirname, 'thread.json'), 'utf8').split('\n\n').filter(Boolean).map(JSON.parse)
@@ -267,8 +260,3 @@ tape('real', function (t) {
   // console.log(a, b)
   t.end()
 })
-
-
-
-
-

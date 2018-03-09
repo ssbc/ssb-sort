@@ -6,7 +6,6 @@ function heads (thread) {
 
   thread.forEach(function (msg) {
     links(msg.value, function (link) {
-        change = true
       counts[link] = 0
     })
   })
@@ -30,39 +29,10 @@ function roots (thread) {
   return ary
 }
 
-function order (thread) {
-  var counts = messages(thread)
-
-  var ordered = true
-  while(ordered) {
-    ordered = false
-    thread.forEach(function (msg) {
-      var max = counts[msg.key] // bigger max == causally later
-
-      // set our max to 1 larger than any linked message with a count >= to ours
-      links(msg.value, function (link) {
-        if(counts[link] && counts[link] + 1 > max) max = counts[link] + 1
-      })
-      if(max > counts[msg.key]) {
-        ordered = true
-        counts[msg.key] = max
-      }
-    })
-  }
-  return counts
-}
-
 function sort (thread) {
-  var obj = arrayToDict(thread)
-
-  function ancestorOf(a, b) {
-    return ancestors(obj, a.key, function (_b, k) {
-      return b.key === k
-    })
-  }
-
+  var dict = arrayToDict(thread)
   function compare(a, b) {
-    return ancestorOf(a, b) ? 1 : ancestorOf(b, a) ? -1 : 0
+    return ancestorOf(a, b, dict) ? 1 : ancestorOf(b, a, dict) ? -1 : 0
   }
 
   return thread.sort(function (a, b) {
@@ -78,16 +48,15 @@ function sort (thread) {
   })
 }
 
-function ancestors (thread, start, each) {
+function ancestors (thread, start, isTarget) {
   if(Array.isArray(thread))
     thread = arrayToDict(thread)
   start = isString(start) ? start : start.key
   var seen = {}
   function traverse (key) {
     if(seen[key]) return
-    var ret
     seen[key] = true
-    if(each(thread[key], key)) return true
+    if(isTarget(thread[key], key)) return true
     return links(thread[key], function (link) {
       if(thread[link]) return traverse(link)
     })
@@ -96,44 +65,37 @@ function ancestors (thread, start, each) {
   return traverse(start)
 }
 
+function ancestorOf (a, b, thread) {
+  return ancestors(thread, a.key, function (_b, k) {
+    return b.key === k
+  })
+}
+
 function missingContext (thread) {
-  var counts = order(thread)
-  sort(thread)
+  var dict = arrayToDict(thread)
+  var results = {}
 
-  var missingContext = {}
-
-  var depth = 1
-  var subset = []
-  var done = false
-  while (!done) {
-    subset = thread.filter(function (msg) {
-      return counts[msg.key] <= depth
-    })
-    var subsetHeads = heads(subset)
-
-    // if there is more than one head at this level, then there's missingContext
-    if (subsetHeads.length > 1) {
-      subsetHeads.forEach(function (head) {
-        var thisMissingContext = subsetHeads
-          .filter(function (h) { return h !== head })
-          .map(function (h) {
-            return thread.find(function (msg) { return msg.key === h })
-          })
-
-        missingContext[head] = (missingContext[head] || []).concat(thisMissingContext)
+  thread.forEach(function (msg) {
+    const noLineage = thread
+      .filter(function (m) { return m.key !== msg.key })
+      .map(function (m) {
+        return areCausallyLinked(m, msg)
+          ? null  // if it's an ancestor, that's all good
+          : m     // if it's not an ancestor, bingo!
       })
-    }
+      .filter(Boolean)
 
-    if (subset.length === thread.length) done = true
-    depth++
+    if (noLineage.length) results[msg.key] = noLineage
+  })
+  return results
+
+  function areCausallyLinked (a, b) {
+    return ancestorOf(a, b, dict) || ancestorOf(b, a, dict)
   }
-
-  return missingContext
 }
 
 exports = module.exports = sort
 exports.heads = heads
-exports.order = order
 exports.roots = roots
 exports.ancestors = ancestors
 exports.missingContext = missingContext

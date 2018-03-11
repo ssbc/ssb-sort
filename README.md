@@ -48,28 +48,6 @@ to a particular root node, in which case this will return one key.
 
 returns an object where each key is the key of a message missing context, and the value stored in it is the array of messages constituting that missing context.
 
-### sort.order (set)
-
-returns an object where the keys are the message keys,
-and values are the 'depth' of that message in the causal tree.
-
-
-e.g. 1 implies a root, 4 implies 3 levels of messages above that message.
-
-```
-1:       A
-        /|\
-       / | \
-      /  |  \
-2:   B1  B2  B3
-      \ /   /
-3:     C   /
-        \ /
-4:       D
-```
-
-this method is used internally by other methods and made available for convenience
-
 ## License
 
 MIT

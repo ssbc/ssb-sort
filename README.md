@@ -34,8 +34,19 @@ mutates the original set
 
 ### `sort.heads (set) => Array`
 
-returns the most recent keys in the set (furtherest down the
-causation chain)
+returns the most "recent keys" in the set (furtherest down the
+causation chain). `sort.heads` is used to calculate the `branch`
+property is [patchwork](https://github.com/ssbc/patchwork) threads.
+
+Usually, a single key is returned, but if there have been
+[concurrent](https://en.wikipedia.org/wiki/Concurrent_computing)
+responses `heads` will return multiple values. If two or more peers
+respond while not having the latest messages, (for example because
+they are offline, or they respond before all the messages have
+reached them)
+
+You can think of "concurrent" as meaning both "at the same time"
+or "not knowing about the other".
 
 ### `sort.roots (set) => Array`
 
@@ -50,8 +61,6 @@ with scuttlebutt, it's possible for people to post message simultaneously
 (or even at different times) and not know about other messages that were written.
 this method tells you which messages were on 'different branches', 
 as in did not know about other messages at the time of writing.
-
-e.g. 
 
 ```
 
@@ -78,4 +87,5 @@ There are more complicated examples (with diagrams!) in the tests.
 ## License
 
 MIT
+
 

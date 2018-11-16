@@ -1,7 +1,7 @@
 {
   "name": "ssb-sort",
   "description": "sort ssb messages by cryptographic order",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "homepage": "https://github.com/ssbc/ssb-sort",
   "repository": {
     "type": "git",
